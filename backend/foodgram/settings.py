@@ -25,7 +25,7 @@ SECRET_KEY = '=xp)%sl6=3fd6-k167o_r)wmzx!2i1q=3=j3=vt^d1ru+4^e#g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Application definition
@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
-    'djanfo_filters'
+    'django_filters',
 ]
 
 MIDDLEWARE = [
