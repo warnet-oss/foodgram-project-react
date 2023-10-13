@@ -1,34 +1,21 @@
-from http import HTTPStatus
-
 from django.contrib.auth import get_user_model
-from django.db import transaction
-from django.db.models import (
-    BooleanField, 
-    Exists, 
-    OuterRef, 
-    Sum, 
-    Value, 
-    F
-)
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (
-    FavoriteRecipe,
-    Ingredient,
-    RecipeIngredient,
-    Recipe,
-    ShoppingList,
-    Tag,
-)
-from rest_framework import mixins, viewsets
+from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthorOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from users.models import Follow
 
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
+from users.models import Follow
+from rest_framework import mixins, viewsets
 from .filters import CustomFilterForIngredients, CustomFilterForRecipes
-from .permissions import IsAdminAuthorOrReadOnly, IsAdminOrReadOnly
+from .paginations import CustomPagination
+from .permissions import IsAuthorOrReadOnly
 from .serializers import (CustomUserSerializer, GetRecipeSerializer,
                           IngredientSerializer, PostRecipeSerializer,
                           ShortRecipeSerializer, SubscriptionSerializer,
@@ -36,39 +23,23 @@ from .serializers import (CustomUserSerializer, GetRecipeSerializer,
 
 User = get_user_model()
 
-class GetIsSubscribedMixin:
-
-    def get_is_subscribed(self, obj):
-        user = self.context.get("request").user
-        if user.is_anonymous:
-            return False
-        return user.followers.filter(author=obj.id).exists()
-
-
-class GetIngredientsMixin:
-
-    def get_ingredients(self, obj):
-        return obj.ingredients.values(
-            "id",
-            "name",
-            "measurement_unit",
-            amount=F("recipeingredient__amount"),
-        )
-
-
-class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class ListRetrieveViewSet(
+    viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
+):
+    permission_classes = (IsAuthorOrReadOnly,)
+class TagsViewSet(ListRetrieveViewSet):
 
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [IsAuthorOrReadOnly]
+    pagination_class = None
 
 
-class IngredientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+class IngredientsViewSet(ListRetrieveViewSet):
 
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = [IsAuthorOrReadOnly]
-    filterset_class = CustomFilterForIngredients
+    pagination_class = None
+    filter_class = CustomFilterForIngredients
 
 
 class CustomUserViewSet(UserViewSet):
@@ -80,16 +51,16 @@ class CustomUserViewSet(UserViewSet):
     @action(
         detail=False,
         methods=['GET'],
-        permission_classes=[IsAuthorOrReadOnly],
+        permission_classes=[IsAuthenticated],
         serializer_class=SubscriptionSerializer
     )
     def subscriptions(self, request):
         user = request.user
-        favorites = user.following.all()
+        favorites = user.followers.all()
         users_id = [favorite_instance.author.id for favorite_instance in favorites]
         users = User.objects.filter(id__in=users_id)
         paginated_queryset = self.paginate_queryset(users)
-        serializer = self.get_serializer(paginated_queryset, many=True)
+        serializer = self.serializer_class(paginated_queryset, many=True)
         return self.get_paginated_response(serializer.data)
 
     @action(
@@ -97,9 +68,9 @@ class CustomUserViewSet(UserViewSet):
         methods=('post', 'delete'),
         serializer_class=SubscriptionSerializer
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id=None):
         user = request.user
-        author = get_object_or_404(User, pk=pk)
+        author = get_object_or_404(User, pk=id)
 
         follow_search = Follow.objects.filter(user=user, author=author)
 
@@ -144,7 +115,7 @@ class FavoriteShoppingCartMixin:
 class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
 
     queryset = Recipe.objects.all()
-    permission_classes = [IsAdminAuthorOrReadOnly]
+    permission_classes = [IsAuthorOrReadOnly]
     pagination_class = CustomPagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = CustomFilterForRecipes
@@ -158,23 +129,23 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             error_message = 'Рецепт уже есть в избранном.'
-            return self.create_method(FavoriteRecipe, pk, request, error_message)
+            return self.create_method(Favorite, pk, request, error_message)
         elif request.method == 'DELETE':
             error_message = 'Рецепта нет в избранном.'
-            return self.delete_method(FavoriteRecipe, pk, request, error_message)
+            return self.delete_method(Favorite, pk, request, error_message)
 
     @action(detail=True, methods=('POST', 'DELETE'), permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
             error_message = 'Рецепт уже есть в списке покупок.'
-            return self.create_method(ShoppingList, pk, request, error_message)
+            return self.create_method(ShoppingCart, pk, request, error_message)
         elif request.method == 'DELETE':
             error_message = 'Рецепта нет в списке покупок.'
-            return self.delete_method(ShoppingList, pk, request, error_message)
+            return self.delete_method(ShoppingCart, pk, request, error_message)
 
     @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        shopping_cart = ShoppingList.objects.filter(user=request.user)
+        shopping_cart = ShoppingCart.objects.filter(user=request.user)
         recipes_id = [item.recipe.id for item in shopping_cart]
         ingredients = RecipeIngredient.objects.filter(
             recipe__in=recipes_id).values('ingredient__name', 'ingredient__measurement_unit'

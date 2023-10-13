@@ -11,10 +11,10 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -42,9 +42,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "api.apps.ApiConfig",
+    "core.apps.CoreConfig",
     "recipes.apps.RecipesConfig",
     "users.apps.UsersConfig",
-    "core.apps.CoreConfig",
     "rest_framework",
     "rest_framework.authtoken",
     "djoser",
@@ -86,17 +86,13 @@ WSGI_APPLICATION = "foodgram.wsgi.application"
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": os.getenv(
-            "DB_ENGINE", default="django.db.backends.postgresql"
-        ),
-        "NAME": os.getenv(
-            "DB_NAME", default=os.path.join(BASE_DIR, "postgres")
-        ),
-        "USER": os.getenv("POSTGRES_USER", default="postgres"),
-        "PASSWORD": os.getenv("POSTGRES_PASSWORD", default="Es11042715"),
-        "HOST": os.getenv("DB_HOST", default="db"),
-        "PORT": os.getenv("DB_PORT", default="5432"),
+    'default': {
+        'ENGINE': os.getenv('DB_ENGINE', default='django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', default='postgres'),
+        'USER': os.getenv('POSTGRES_USER', default='postgres'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', default='postgres'),
+        'HOST': os.getenv('DB_HOST', default='db'),
+        'PORT': os.getenv('DB_PORT', default='5432')
     }
 }
 
@@ -154,7 +150,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
     ],
-    "DEFAULT_PAGINATION_CLASS": "api.paginations.LimitPageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.paginations.PageNumberPagination",
     "PAGE_SIZE": 6,
 }
 
@@ -162,8 +158,8 @@ DJOSER = {
     "LOGIN_FIELD": "email",
     "SERIALIZERS": {
         "user_create": "api.serializers.CustomUserCreateSerializer",
-        "user": "api.serializers.CustomUserListSerializer",
-        "current_user": "api.serializers.CustomUserListSerializer",
+        "user": "api.serializers.CustomUserSerializer",
+        "current_user": "api.serializers.CustomUserSerializer",
     },
     "PERMISSIONS": {
         "user": ["rest_framework.permissions.IsAuthenticated"],

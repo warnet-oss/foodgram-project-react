@@ -4,37 +4,31 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import exceptions, serializers
 
-from recipes.models import (
-    FavoriteRecipe,
-    Ingredient,
-    Recipe,
-    RecipeIngredient,
-    ShoppingList,
-    Tag
-)
+from recipes.models import (FavoriteRecipe, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from users.models import Follow
 
 User = get_user_model()
 
-from django.db.models import F
 
-class SubscriptionStatusMixin:
+class GetIsSubscribedMixin:
+    """Миксина отображения подписки на пользователя"""
 
-    def get_subscription_status(self, obj):
+    def get_is_subscribed(self, obj):
         user = self.context.get("request").user
         if user.is_anonymous:
             return False
-        return user.following.filter(following_user=obj).exists()
+        return user.follower.filter(author=obj.id).exists()
 
 
-class IngredientsInfoMixin:
+class GetIngredientsMixin:
 
-    def get_ingredients_info(self, obj):
+    def get_ingredients(self, obj):
         return obj.ingredients.values(
             "id",
             "name",
             "measurement_unit",
-            amount=F("ingredient_quantities__amount"),
+            amount=F("ingredients_amount__amount"),
         )
 
 
@@ -104,14 +98,12 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = serializers.SerializerMethodField(read_only=True)
     is_favorited = serializers.SerializerMethodField(read_only=True)
-    is_in_shopping_lists = serializers.SerializerMethodField(read_only=True)
+    is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Recipe
-        fields = (
-            'id', 'tags', 'author', 'ingredients', 'is_favorited', 'is_in_shopping_lists',
-            'name', 'image', 'text', 'cooking_time'
-        )
+        fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
+                  'is_in_shopping_cart', 'name', 'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
@@ -119,11 +111,11 @@ class GetRecipeSerializer(serializers.ModelSerializer):
             return False
         return FavoriteRecipe.objects.filter(user=request.user, recipe=obj.id).exists()
 
-    def get_is_in_shopping_lists(self, obj):
+    def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return ShoppingList.objects.filter(user=request.user, recipe=obj.id).exists()
+        return ShoppingCart.objects.filter(user=request.user, recipe=obj.id).exists()
 
     def get_ingredients(self, obj):
         recipe = obj
@@ -172,7 +164,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         ingredients_id_list = [ingredient['id'] for ingredient in ingredients]
         for ingredient_id in ingredients_id_list:
             if ingredients_id_list.count(ingredient_id) > 1:
-                raise exceptions.ValidationError('У рецепта не может быть два одинаковых ингредиента.')
+                raise exceptions.ValidationError('У рецепка не может быть два одинаковых игредиента.')
         return ingredients
 
     def validate_cooking_time(self, cooking_time):
@@ -229,7 +221,9 @@ class PostRecipeSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
     def to_representation(self, instance):
-        serializer = GetRecipeSerializer(instance)
+        serializer = GetRecipeSerializer(
+            instance
+        )
         return serializer.data
 
     class Meta:
@@ -251,4 +245,5 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'username', 'first_name', 'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        fields = ('id', 'email', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', "recipes", 'recipes_count')

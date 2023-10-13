@@ -1,6 +1,6 @@
 from django_filters import rest_framework
 
-from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
+from recipes.models import FavoriteRecipe, Ingredient, Recipe, ShoppingCart, Tag
 
 CHOICES_LIST = (
     ('0', 'False'),
@@ -9,6 +9,7 @@ CHOICES_LIST = (
 
 
 class CustomFilterForRecipes(rest_framework.FilterSet):
+    """Кастомная фильтрация для рецептов."""
 
     is_favorited = rest_framework.ChoiceFilter(
         method='is_favorited_method',
@@ -32,7 +33,7 @@ class CustomFilterForRecipes(rest_framework.FilterSet):
         if self.request.user.is_anonymous:
             return Recipe.objects.none()
 
-        favorites = Favorite.objects.filter(user=self.request.user)
+        favorites = FavoriteRecipe.objects.filter(user=self.request.user)
         recipes = [item.recipe.id for item in favorites]
         if value == '1':
             return queryset.filter(id__in=recipes)
