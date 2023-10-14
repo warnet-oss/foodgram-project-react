@@ -4,12 +4,12 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from rest_framework import exceptions, status, viewsets
+from rest_framework import exceptions, status, viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.permissions import  IsAuthenticated
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (FavoriteRecipe, 
+from recipes.models import (FavoriteRecipe,
                             Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -60,7 +60,8 @@ class CustomUserViewSet(UserViewSet):
     def subscriptions(self, request):
         user = request.user
         favorites = user.followers.all()
-        users_id = [favorite_instance.author.id for favorite_instance in favorites]
+        users_id = [
+            favorite_instance.author.id for favorite_instance in favorites]
         users = User.objects.filter(id__in=users_id)
         paginated_queryset = self.paginate_queryset(users)
         serializer = self.serializer_class(paginated_queryset, many=True)
@@ -90,7 +91,8 @@ class CustomUserViewSet(UserViewSet):
 
         if request.method == 'DELETE':
             if not follow_search.exists():
-                raise exceptions.ValidationError('Вы не подписаны на этого пользователя.')
+                raise exceptions.ValidationError(
+                    'Вы не подписаны на этого пользователя.')
             Follow.objects.filter(user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -104,7 +106,8 @@ class FavoriteShoppingCartMixin:
         if model.objects.filter(recipe=recipe, user=user).exists():
             raise exceptions.ValidationError(error_message)
         model.objects.create(user=user, recipe=recipe)
-        serializer = ShortRecipeSerializer(instance=recipe, context={'request': request})
+        serializer = ShortRecipeSerializer(
+            instance=recipe, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @staticmethod
@@ -130,30 +133,42 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
             return GetRecipeSerializer
         return PostRecipeSerializer
 
-    @action(detail=True, methods=('POST', 'DELETE'), permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=('POST', 'DELETE'), 
+            permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             error_message = 'Рецепт уже есть в избранном.'
-            return self.create_method(FavoriteRecipe, pk, request, error_message)
+            return self.create_method(FavoriteRecipe,
+                                      pk,
+                                      request,
+                                      error_message)
         elif request.method == 'DELETE':
             error_message = 'Рецепта нет в избранном.'
-            return self.delete_method(Favorite, pk, request, error_message)
+            return self.delete_method(FavoriteRecipe,
+                                      pk,
+                                      request,
+                                      error_message)
 
-    @action(detail=True, methods=('POST', 'DELETE'), permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=('POST', 'DELETE'),
+            permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
             error_message = 'Рецепт уже есть в списке покупок.'
-            return self.create_method(ShoppingCart, pk, request, error_message)
+            return self.create_method(ShoppingCart, pk, request,
+                                      error_message)
         elif request.method == 'DELETE':
             error_message = 'Рецепта нет в списке покупок.'
-            return self.delete_method(ShoppingCart, pk, request, error_message)
+            return self.delete_method(ShoppingCart, pk, request,
+                                      error_message)
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    @action(detail=False, methods=['GET'],
+            permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         shopping_cart = ShoppingCart.objects.filter(user=request.user)
         recipes_id = [item.recipe.id for item in shopping_cart]
         ingredients = RecipeIngredient.objects.filter(
-            recipe__in=recipes_id).values('ingredient__name', 'ingredient__measurement_unit'
+            recipe__in=recipes_id).values('ingredient__name',
+                                          'ingredient__measurement_unit'
                                           ).annotate(amount=Sum('amount'))
         final_list = 'Список покупок от Foodgram\n\n'
 
@@ -165,5 +180,7 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
 
         filename = 'foodgram_shopping_list.txt'
         response = HttpResponse(final_list[:-1], content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename={0}'.format(filename)
+        response[
+            'Content-Disposition'
+            ] = 'attachment; filename={0}'.format(filename)
         return response
