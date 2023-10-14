@@ -25,3 +25,4 @@
 
 * **Александр**
   GitHub - [warnet-oss](https://github.com/warnet-oss)
+  Имя и пароль админ понели: admin admin
