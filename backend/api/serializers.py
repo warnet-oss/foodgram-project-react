@@ -5,9 +5,9 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import exceptions, serializers
 
-from recipes.models import (FavoriteRecipe, 
-                            Ingredient, 
-                            Recipe, 
+from recipes.models import (FavoriteRecipe,
+                            Ingredient,
+                            Recipe,
                             RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
@@ -41,18 +41,18 @@ class CustomUserSerializer(UserSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 
-                  'email', 
-                  'username', 
-                  'first_name', 
-                  'last_name', 
+        fields = ('id',
+                  'email',
+                  'username',
+                  'first_name',
+                  'last_name',
                   'is_subscribed')
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return Follow.objects.filter(user=request.user, 
+        return Follow.objects.filter(user=request.user,
                                      author=obj.id).exists()
 
 
@@ -60,11 +60,11 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 
-                  'email', 
-                  'username', 
-                  'first_name', 
-                  'last_name', 
+        fields = ('id',
+                  'email',
+                  'username',
+                  'first_name',
+                  'last_name',
                   'password')
 
 
@@ -117,21 +117,21 @@ class GetRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'tags', 'author', 'ingredients', 'is_favorited',
-                  'is_in_shopping_cart', 
+                  'is_in_shopping_cart',
                   'name', 'image', 'text', 'cooking_time')
 
     def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return FavoriteRecipe.objects.filter(user=request.user, 
+        return FavoriteRecipe.objects.filter(user=request.user,
                                              recipe=obj.id).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(user=request.user, 
+        return ShoppingCart.objects.filter(user=request.user,
                                            recipe=obj.id).exists()
 
     def get_ingredients(self, obj):
@@ -231,7 +231,7 @@ class PostRecipeSerializer(serializers.ModelSerializer):
             for ingredient in ingredients:
                 amount = ingredient['amount']
                 ingredient_instance = ingredient['id']
-                ingredient = get_object_or_404(Ingredient, 
+                ingredient = get_object_or_404(Ingredient,
                                                pk=ingredient_instance)
 
                 RecipeIngredient.objects.update_or_create(
@@ -268,5 +268,5 @@ class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'email', 'username', 'first_name',
-                  'last_name', 
+                  'last_name',
                   'is_subscribed', 'recipes', "recipes", 'recipes_count')

@@ -1,9 +1,9 @@
 from django_filters import rest_framework
 
-from recipes.models import (FavoriteRecipe, 
-                            Ingredient, 
-                            Recipe, 
-                            ShoppingCart, 
+from recipes.models import (FavoriteRecipe,
+                            Ingredient,
+                            Recipe,
+                            ShoppingCart,
                             Tag)
 
 CHOICES_LIST = (

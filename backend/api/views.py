@@ -133,7 +133,7 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
             return GetRecipeSerializer
         return PostRecipeSerializer
 
-    @action(detail=True, methods=('POST', 'DELETE'), 
+    @action(detail=True, methods=('POST', 'DELETE'),
             permission_classes=[IsAuthenticated])
     def favorite(self, request, pk=None):
         if request.method == 'POST':

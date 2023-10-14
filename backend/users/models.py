@@ -28,14 +28,14 @@ class Follow(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Подписка' 
-        verbose_name_plural ='Подписки' 
-        ordering = ("-created_at",) 
-        constraints = [ 
-            models.UniqueConstraint( 
-                fields=['user', 'following'], 
-                name='unique_user_following' 
-            ) 
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        ordering = ("-created_at",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
         ]
 
     def __str__(self):
