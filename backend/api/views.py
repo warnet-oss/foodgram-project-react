@@ -129,7 +129,7 @@ class RecipeViewSet(viewsets.ModelViewSet, FavoriteShoppingCartMixin):
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             error_message = 'Рецепт уже есть в избранном.'
-            return self.create_method(Favorite, pk, request, error_message)
+            return self.create_method(FavoriteRecipe, pk, request, error_message)
         elif request.method == 'DELETE':
             error_message = 'Рецепта нет в избранном.'
             return self.delete_method(Favorite, pk, request, error_message)

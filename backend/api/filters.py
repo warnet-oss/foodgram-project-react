@@ -9,7 +9,6 @@ CHOICES_LIST = (
 
 
 class CustomFilterForRecipes(rest_framework.FilterSet):
-    """Кастомная фильтрация для рецептов."""
 
     is_favorited = rest_framework.ChoiceFilter(
         method='is_favorited_method',

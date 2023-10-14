@@ -6,7 +6,6 @@ User = get_user_model()
 
 
 class Tag(models.Model):
-    """Модель тегов для рецептов."""
 
     name = models.CharField(
         'Название',
@@ -33,7 +32,6 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель ингредиентов для рецептов."""
 
     name = models.CharField(
         'Название',
@@ -53,7 +51,6 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """Модель рецептов."""
 
     author = models.ForeignKey(
         User,
@@ -108,8 +105,6 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """Модель для связи между рецептами и ингредиентами.
-    А также количество ингедиентов."""
 
     ingredient = models.ForeignKey(
         Ingredient,
@@ -135,7 +130,6 @@ class RecipeIngredient(models.Model):
 
 
 class FavoriteRecipe(models.Model):
-    """Модель для избранных рецептов."""
 
     user = models.ForeignKey(
         User,
@@ -165,7 +159,6 @@ class FavoriteRecipe(models.Model):
 
 
 class ShoppingCart(models.Model):
-    """Модель для списка покупок пользователя."""
 
     user = models.ForeignKey(
         User,

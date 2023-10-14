@@ -12,7 +12,6 @@ User = get_user_model()
 
 
 class GetIsSubscribedMixin:
-    """Миксина отображения подписки на пользователя"""
 
     def get_is_subscribed(self, obj):
         user = self.context.get("request").user

@@ -21,7 +21,8 @@ class Follow(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='followed_users',
-        verbose_name='Автор'
+        verbose_name='Автор',
+        null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
