@@ -18,8 +18,6 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         path = os.path.join(settings.BASE_DIR, 'ingredients.csv')
         with open(path, 'r', encoding='utf-8') as file:
-            row_count = sum(1 for row in file)
-        with open(path, 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             next(reader)
             for row in reader:

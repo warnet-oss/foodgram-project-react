@@ -118,7 +118,11 @@ class RecipeIngredient(models.Model):
     )
     amount = models.PositiveIntegerField(
         'Количество',
-        validators=[MinValueValidator(1, message='Минимальное количесво ингредиентов 1.')]
+        validators=[
+            MinValueValidator(
+                1, message='Минимальное количесво ингредиентов 1.'
+                )
+            ]
     )
 
     class Meta:
@@ -126,7 +130,8 @@ class RecipeIngredient(models.Model):
         verbose_name_plural = 'Ингредиенты в рецепте'
 
     def __str__(self):
-        return f'{self.ingredient.name} - {self.amount} {self.ingredient.measurement_unit}'
+        return f'{self.ingredient.name} - {self.amount} \ 
+            {self.ingredient.measurement_unit}'
 
 
 class FavoriteRecipe(models.Model):
@@ -154,8 +159,10 @@ class FavoriteRecipe(models.Model):
             )
         ]
 
-    def __str__(self):
-        return f'Favorite >>> Пользователь {self.user.username} - рецепт {self.recipe.name}'
+    def str(self):
+        return f'Favorite >>> ' \
+               f'Пользователь {self.user.username} ' \
+               f'- рецепт {self.recipe.name}'
 
 
 class ShoppingCart(models.Model):
@@ -183,5 +190,6 @@ class ShoppingCart(models.Model):
             )
         ]
 
-    def __str__(self):
-        return f'ShoppingCart >>> Пользователь {self.user.username} - рецепт {self.recipe.name}'
+    def str(self):
+        return f'ShoppingCart >>> Пользователь {self.user.username} - ' \
+               f'рецепт {self.recipe.name}'

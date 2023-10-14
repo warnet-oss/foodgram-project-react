@@ -6,13 +6,13 @@ from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
 from rest_framework import exceptions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import  IsAuthenticated
 from rest_framework.response import Response
 
-from recipes.models import (FavoriteRecipe, Ingredient, Recipe, RecipeIngredient,
+from recipes.models import (FavoriteRecipe, 
+                            Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
 from users.models import Follow
-from rest_framework import mixins, viewsets
 from .filters import CustomFilterForIngredients, CustomFilterForRecipes
 from .paginations import CustomPagination
 from .permissions import IsAuthorOrReadOnly
@@ -23,10 +23,13 @@ from .serializers import (CustomUserSerializer, GetRecipeSerializer,
 
 User = get_user_model()
 
+
 class ListRetrieveViewSet(
     viewsets.GenericViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin
 ):
     permission_classes = (IsAuthorOrReadOnly,)
+
+
 class TagsViewSet(ListRetrieveViewSet):
 
     queryset = Tag.objects.all()
@@ -76,9 +79,11 @@ class CustomUserViewSet(UserViewSet):
 
         if request.method == 'POST':
             if user == author:
-                raise exceptions.ValidationError('Подписываться на себя запрещено.')
+                raise exceptions.ValidationError(
+                    'Подписываться на себя запрещено.')
             if follow_search.exists():
-                raise exceptions.ValidationError('Вы уже подписаны на этого пользователя.')
+                raise exceptions.ValidationError(
+                    'Вы уже подписаны на этого пользователя.')
             Follow.objects.create(user=user, author=author)
             serializer = self.get_serializer(author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
