@@ -121,8 +121,8 @@ class RecipeIngredient(models.Model):
         validators=[
             MinValueValidator(
                 1, message='Минимальное количесво ингредиентов 1.'
-                )
-            ]
+            )
+        ]
     )
 
     class Meta:
