@@ -21,8 +21,8 @@
 7. Docker (для запуска проекта в контейнерах)
 8. Gunicorn
 9. Nginx
-### Авторы:
 
+### Имя и пароль админ понели: admin admin
+### Авторы:
 * **Александр**
   GitHub - [warnet-oss](https://github.com/warnet-oss)
-  ###Имя и пароль админ понели: admin admin
